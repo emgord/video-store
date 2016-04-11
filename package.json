@@ -1,0 +1,17 @@
+{
+  "name": "video-store-api",
+  "version": "1.0.0",
+  "description": "Video Store REST API",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com/emgord/video-store.git"
+  },
+  "author": "Emily gordon",
+  "license": "MIT",
+  "homepage": "https://github.com/emgord/video-store",
+  "dependencies": {
+    "body-parser": "1.10.2",
+    "express": "4.11.1",
+    "pg": "4.2.0"
+  }
+}
