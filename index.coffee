@@ -24,6 +24,7 @@ lookupMovie = (req, res, next) ->
 
 
 movieRouter = express.Router()
+
 movieRouter.get('/', (req, res) ->
   page = parseInt(req.query.page, 10)
   if isNaN(page) || page < 1
@@ -88,11 +89,26 @@ movieRouter.post('/', (req, res) ->
     )
   )
 )
+
 movieRouter.get('/:id', lookupMovie, (req, res) ->
   res.json(req.movie)
   )
+
 movieRouter.patch('/:id', lookupMovie, (req, res) -> )
-movieRouter.delete('/:id', lookupMovie, (req, res) -> )
+movieRouter.delete('/:id', lookupMovie, (req, res) ->
+    movieId = req.params.id
+    sql = 'DELETE FROM movie WHERE id = $1'
+    postgres.client.query(sql, [movieId], (err, result) ->
+      if err
+        console.error(err)
+        res.statusCode = 500
+        return res.json({
+          errors: ['Could not delete movie']
+          })
+      res.statusCode = 201
+      res.json({messages: ['Movie successfully deleted']})
+   )
+  )
 app.use('/movie',movieRouter)
 
 customerRouter = express.Router()

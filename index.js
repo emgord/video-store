@@ -114,7 +114,24 @@
 
   movieRouter.patch('/:id', lookupMovie, function(req, res) {});
 
-  movieRouter["delete"]('/:id', lookupMovie, function(req, res) {});
+  movieRouter["delete"]('/:id', lookupMovie, function(req, res) {
+    var movieId, sql;
+    movieId = req.params.id;
+    sql = 'DELETE FROM movie WHERE id = $1';
+    return postgres.client.query(sql, [movieId], function(err, result) {
+      if (err) {
+        console.error(err);
+        res.statusCode = 500;
+        return res.json({
+          errors: ['Could not delete movie']
+        });
+      }
+      res.statusCode = 201;
+      return res.json({
+        messages: ['Movie successfully deleted']
+      });
+    });
+  });
 
   app.use('/movie', movieRouter);
 
