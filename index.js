@@ -39,7 +39,45 @@
 
   movieRouter = express.Router();
 
-  movieRouter.get('/', function(req, res) {});
+  movieRouter.get('/', function(req, res) {
+    var limit, page, sql;
+    page = parseInt(req.query.page, 10);
+    if (isNaN(page) || page < 1) {
+      page = 1;
+    }
+    limit = parseInt(req.query.limit, 10);
+    if (isNaN(limit)) {
+      limit = 10;
+    } else if (limit > 50) {
+      limit = 50;
+    } else if (limit < 1) {
+      limit = 1;
+    }
+    sql = 'SELECT count(1) FROM movie';
+    return postgres.client.query(sql, function(err, result) {
+      var count, offset;
+      if (err) {
+        console.error(err);
+        res.statusCode = 500;
+        return res.json({
+          errors: ['Could not retrieve movies']
+        });
+      }
+      count = parseInt(result.rows[0].count, 10);
+      offset = (page - 1) * limit;
+      sql = 'SELECT * FROM movie OFFSET $1 LIMIT $2';
+      return postgres.client.query(sql, [offset, limit], function(err, result) {
+        if (err) {
+          console.error(err);
+          res.statusCode = 500;
+          return res.json({
+            errors: ['Could not retreive movies']
+          });
+        }
+        return res.json(result.rows);
+      });
+    });
+  });
 
   movieRouter.post('/', function(req, res) {
     var data, sql;

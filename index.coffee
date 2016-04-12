@@ -24,7 +24,40 @@ lookupMovie = (req, res, next) ->
 
 
 movieRouter = express.Router()
-movieRouter.get('/', (req, res) -> )
+movieRouter.get('/', (req, res) ->
+  page = parseInt(req.query.page, 10)
+  if isNaN(page) || page < 1
+    page = 1
+
+  limit = parseInt(req.query.limit, 10)
+  if isNaN(limit)
+    limit = 10
+  else if limit > 50
+    limit = 50
+  else if limit < 1
+    limit = 1
+
+  sql = 'SELECT count(1) FROM movie'
+  postgres.client.query(sql, (err, result) ->
+    if err
+      console.error(err)
+      res.statusCode = 500;
+      return res.json({ errors: ['Could not retrieve movies']})
+    count = parseInt(result.rows[0].count, 10)
+    offset = (page - 1) * limit
+    sql = 'SELECT * FROM movie OFFSET $1 LIMIT $2'
+    postgres.client.query(sql, [offset, limit], (err, result) ->
+      if err
+        console.error(err)
+        res.statusCode = 500
+        return res.json({
+          errors: ['Could not retreive movies']
+          })
+      return res.json(result.rows)
+    )
+  )
+)
+
 movieRouter.post('/', (req, res) ->
   sql = 'INSERT INTO movie( title, overview,release_date, inventory) VALUES ($1,$2,$3,$4) RETURNING id'
   data = [
