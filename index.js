@@ -112,7 +112,34 @@
     return res.json(req.movie);
   });
 
-  movieRouter.patch('/:id', lookupMovie, function(req, res) {});
+  movieRouter.patch('/:id', lookupMovie, function(req, res) {
+    var data, movieId, sql;
+    movieId = req.params.id;
+    sql = 'UPDATE movie SET title=$2, overview=$3, release_date=$4, inventory=$5 WHERE id=$1 RETURNING id';
+    data = [movieId, req.body.title, req.body.overview, req.body.release_date, req.body.inventory];
+    return postgres.client.query(sql, data, function(err, result) {
+      if (err) {
+        console.error(err);
+        res.statusCode = 500;
+        return res.json({
+          errors: ['Failed to update movie']
+        });
+      }
+      movieId = result.rows[0].id;
+      sql = 'SELECT * FROM movie WHERE id = $1';
+      return postgres.client.query(sql, [movieId], function(err, result) {
+        if (err) {
+          console.error(err);
+          res.statusCode = 500;
+          return res.json({
+            errors: ['Could not retrieve movie after update']
+          });
+        }
+        res.statusCode = 201;
+        return res.json(result.rows[0]);
+      });
+    });
+  });
 
   movieRouter["delete"]('/:id', lookupMovie, function(req, res) {
     var movieId, sql;
