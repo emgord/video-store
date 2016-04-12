@@ -13,7 +13,7 @@ CREATE TABLE customer (
 CREATE TABLE movie (
   id serial primary key,
   title varchar(100),
-  overview varchar(255),
+  overview varchar(15000),
   release_date varchar(100),
   inventory integer
 );

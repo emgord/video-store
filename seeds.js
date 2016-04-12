@@ -14,7 +14,7 @@
     if (err) {
       throw err;
     }
-    return fs.readFile(__dirname + "/movies.json", 'utf8', function(err, data) {
+    fs.readFile(__dirname + "/movies.json", 'utf8', function(err, data) {
       var i, len, movie, moviesArray, results, sql;
       if (err) {
         return console.log(err);
@@ -31,6 +31,29 @@
               return console.log("Failed to create movie");
             } else {
               return console.log("Movie created");
+            }
+          }));
+        }
+        return results;
+      }
+    });
+    return fs.readFile(__dirname + "/customers.json", 'utf8', function(err, data) {
+      var customer, customerArray, i, len, results, sql;
+      if (err) {
+        return console.log(err);
+      } else {
+        customerArray = JSON.parse(data.toString());
+        sql = 'INSERT INTO customer( name, registered_at, address,city, state, postal_code, phone, account_credit) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)';
+        results = [];
+        for (i = 0, len = customerArray.length; i < len; i++) {
+          customer = customerArray[i];
+          data = [customer.name, customer.registered_at, customer.address, customer.city, customer.state, customer.postal_code, customer.phone, customer.account_credit];
+          results.push(pg.client.query(sql, data, function(err, result) {
+            if (err) {
+              console.error(err);
+              return console.log("Failed to create customer");
+            } else {
+              return console.log("customer created");
             }
           }));
         }
