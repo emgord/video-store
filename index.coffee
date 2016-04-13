@@ -6,6 +6,25 @@ app.use(bodyParser.json({type: 'application/json'}))
 
 postgres = require('./lib/postgres');
 
+app2 = express.createServer()
+app2.get('/home', (req, res, next) ->
+
+    #Regenerates the JS/template file
+    if (req.url.indexOf('/bundle') == 0) bundle();
+
+    #Don't process requests for API endpoints
+    if (req.url.indexOf('/json') == 0 ) return next();
+
+    init = "$(document).ready(function() { App.initialize(); });"
+
+    fs.readFile(__dirname + '/backbone/index.html', 'utf8', (error, content) ->
+        if (error) console.log(error)
+        content = content.replace("{{init}}", init)
+        res.writeHead(200, { 'Content-Type': 'text/html' })
+        res.end(content, 'utf-8')
+    )
+)
+
 lookupMovie = (req, res, next) ->
   movieId = req.params.id
   sql = 'SELECT * FROM movie WHERE id = $1'
@@ -54,6 +73,8 @@ movieRouter.get('/', (req, res) ->
         return res.json({
           errors: ['Could not retreive movies']
           })
+      res.header("Access-Control-Allow-Origin", "*")
+      res.header("Access-Control-Allow-Headers", "X-Requested-With")
       return res.json(result.rows)
     )
   )
@@ -164,5 +185,7 @@ app.use('/rental',rentalRouter)
 app.get('/zomg', (req,res) ->
   res.send('it still still works!')
 )
+
+
 
 module.exports = app
